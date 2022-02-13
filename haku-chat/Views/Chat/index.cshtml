@@ -1,0 +1,142 @@
+﻿@{
+    ViewData["Title"] = "Chat：ルーム";
+}
+
+<div id="chat-title"  style="padding-top:1vh; padding-bottom:1vh;">
+    <h2>チャット</h2>
+</div>
+
+<div id="chat" class="chat">
+    <script>
+        // ページ読み込み時実行
+        $(function () {
+            console.log("[Chat:ready]Start event.");
+            getChatLog(5);
+            getChatNameColor();
+            console.log("[Chat:ready]End event.");
+        });
+        // ページ読み込み完了時時実行
+        $(window).on('load', function () {
+            console.log("[Chat:load]Start event.");
+
+            console.log("[Chat:load]End event.");
+        });
+
+        // チャットログ取得処理
+        function getChatLog(num) {
+            $.get("@Url.Action("Get", "Chat")",
+                function (data) {
+                    $('.card').remove();
+                    $.each(data, function (key, value) {
+                        $('#chat-log').append(
+                            '<div class="card">' +
+                            '  <div class="card-body">' +
+                            '    <div class="container">' +
+                            '      <div class="row">' +
+                            '        <div class="col-datetime col-lg-2">' +
+                            '          <p class="datetime card-text">' + value.regTime + '</p>' +
+                            '        </div>' +
+                            '        <div class="col-datetime col-lg-2">' +
+                            '          <h5 class="name card-title" style=color:' + value.nameColorCode + ';>' +
+                                         value.name +
+                            '          </h5>' +
+                            '        </div>' +
+                            '        <div class="col-datetime col-lg-8">' +
+                            '          <p class="datetime card-text">' + value.message + '</p>' +
+                            '        </div>' +
+                            '      </div>' +
+                            '    </div>' +
+                            '  </div>' +
+                            '</div>'
+                        );
+                    });
+
+                    console.log("通信成功");
+                    console.log(data);
+                }
+            );
+        }
+
+        function getChatNameColor() {
+            $.get("@Url.Action("GetAll", "ChatNameColorMaster")",
+                function (data) {
+                    $('#ddl-chat-name').remove();
+                    $('#div-chat-name').append(
+                        '<select id="ddl-chat-name" class="form-control">' +
+                        '</select>'
+                    );
+                    $.each(data, function (key, value) {
+                        $('#ddl-chat-name').append(
+                            '<option value="' + value.id + '">' +
+                            value.name +
+                            '</option>'
+                        );
+                    });
+
+                    console.log("通信成功");
+                    console.log(data);
+                }
+            );
+        }
+
+    </script>
+    <div id="chat-log" />
+
+    <div id="chat-input" class="fixed-bottom" style="background-color: white;">
+        <form id="chat-form" name="chat-form">
+            <div class="row">
+                <div class="col-2" style="padding-top:0.5em;padding-bottom:0.5em;">
+                    <label for="name" class="form-label" style=" margin-top:auto; margin-bottom:auto;">名前</label>
+                </div>
+                <div class="col-5" style="padding-top:0.5em;padding-bottom:0.5em;">
+                    <input name="name" id="tb-name" class="form-control" type="text" style="width:100%; margin-top:auto; margin-bottom:auto;" />
+                </div>
+                <div id="div-chat-name" class="col-3" style="padding-top:0.5em;padding-bottom:0.5em;">
+                    <select id="ddl-chat-name" class="form-control">
+                        <option></option>
+                        <option>黒</option>
+                    </select>
+                </div>
+                <div class="col-2" style="padding-top:0.5em;padding-bottom:0.5em;">
+                    <input name="text" id="bt-post" class="btn btn-secondary" type="button" value="送信" />
+                </div>
+            </div>
+            <div class="row">
+                <textarea id="ta-text" class="form-control" style="width:100%"></textarea>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        $('#bt-post').on('click', function () {
+            console.log("[Chat:Post by button]Start event.");
+            var nameString = $('#tb-name').val();
+            var messageString = $('#ta-text').val();
+            var nameColorId = $('#ddl-chat-name').val();
+
+            if (nameString !== "" && messageString !== "") {
+                console.log("[Chat:Post by button]Post chat message.");
+                $.post(
+                    "@Url.Action("Post", "Chat")",
+                    "name=" + nameString + "&message=" + messageString + "&nameColor=" + nameColorId + "&messageColor=1"
+                ).done(
+                    function (data, textStatus, jqXHR) {
+                        getChatLog(5);
+                        console.log("[Chat:Post by button]Post Success.");
+                    }
+                ).fail(
+                    function (jqXHR, textStatus, errorThrown) {
+                        getChatLog(5);
+                        console.log("[Chat:Post by button]Post Failed.");
+                    }
+                );
+            } else {
+                getChatLog(5);
+            }
+
+            console.log("[Chat:Post by button]End event.");
+        });
+    </script>
+
+</div>
+

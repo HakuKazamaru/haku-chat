@@ -1,0 +1,225 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Tile"] = "Chat：入室";
+}
+
+<div id="lobby" class="lobby">
+    <div id="lobby-title" class="row">
+        <div class="col" style="height:25vh">
+            <div class="row" style="padding-top:1vh; padding-bottom:1vh;">
+                <h1>Chat：入室</h1>
+            </div>
+            <div class="row">
+                <p class="text-center">入室するには名前を入力して「入室」ボタンを押してください。</p>
+            </div>
+        </div>
+    </div>
+    <div id="lobby-input" class="row">
+        <script>
+            // ページ読み込み時実行
+            $(function () {
+                console.log("[Chat:ready]Start event.");
+                getChatNameColor();
+                console.log("[Chat:ready]End event.");
+            });
+            // ページ読み込み完了時時実行
+            $(window).on('load', function () {
+                console.log("[Chat:load]Start event.");
+
+                console.log("[Chat:load]End event.");
+            });
+
+            // 名前色取得メソッド
+            function getChatNameColor() {
+                $.get("@Url.Action("GetAll", "ChatNameColorMaster")",
+                    function (data) {
+                        $('#ddl-chat-name').remove();
+                        $('#div-chat-name').append(
+                            '<select id="ddl-chat-name" class="form-control">' +
+                            '</select>'
+                        );
+                        $.each(data, function (key, value) {
+                            $('#ddl-chat-name').append(
+                                '<option value="' + value.id + '">' +
+                                value.name +
+                                '</option>'
+                            );
+                        });
+
+                        console.log("通信成功");
+                        console.log(data);
+                    }
+                );
+            }
+
+        </script>
+
+        <div class="col">
+            <form id="lobby-form" name="lobby-form">
+                <div class="row">
+                    <div class="col-2" style="padding-top:0.5em;padding-bottom:0.5em;">
+                        <label for="name" class="form-label" style=" margin-top:auto; margin-bottom:auto;">名前</label>
+                    </div>
+                    <div class="col-7" style="padding-top:0.5em;padding-bottom:0.5em;">
+                        <input name="name" id="tb-name" class="form-control" type="text" style="width:100%; margin-top:auto; margin-bottom:auto;" />
+                    </div>
+                    <div id="div-chat-name" class="col-3" style="padding-top:0.5em;padding-bottom:0.5em;">
+                        <select id="ddl-chat-name" class="form-control">
+                            <option></option>
+                            <option>黒</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2" style="padding-top:0.5em;padding-bottom:0.5em;">
+                        <label for="name" class="form-label" style=" margin-top:auto; margin-bottom:auto;">
+                            入室時<br>ﾒｯｾｰｼﾞ
+                        </label>
+                    </div>
+                    <div class="col-10" style="padding-top:0.5em;padding-bottom:0.5em;">
+                        <textarea id="ta-text" class="form-control" style="width:100%"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12" style="padding-top:0.5em;padding-bottom:0.5em;">
+                        <div class="form-group row justify-content-center">
+                            <input name="text" id="bt-post" class="btn btn-secondary" type="button" value="入室" />
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            $('#bt-post').on('click', function () {
+                console.log("[Chat:Post by button]Start event.");
+                var nameString = $('#tb-name').val();
+                var messageString = $('#ta-text').val();
+                var nameColorId = $('#ddl-chat-name').val();
+
+                if (nameString !== "" && messageString !== "") {
+                    console.log("[Chat:Post by button]All input.");
+                    $.post(
+                        "@Url.Action("Login", "Lobby")",
+                        "name=" + nameString + "&message=" + messageString + "&nameColor=" + nameColorId + "&messageColor=1"
+                    ).done(
+                        function (data, textStatus, jqXHR) {
+                            console.log("[Chat:Post by button]Post Success.:" + data.result);
+                            if(data.result === "OK") {
+                                window.location.href = "@Url.Action("Index", "Chat")";
+                            } else {
+                                $('#md-p-msg').remove();
+                                if(data.result === "NG1"){
+                                    $('#md-msg').append(
+                                        '<p id="md-p-msg">' +
+                                        '同名のユーザがすでにログインしています。' +
+                                        '</p>'
+                                    );
+                                }else{
+                                    $('#md-msg').append(
+                                        '<p id="md-p-msg">' +
+                                        'システムエラーが発生しました。' +
+                                        '</p>'
+                                    );
+                                }
+                                $('#md-msgbox').modal('show');
+                            }
+                        }
+                    ).fail(
+                        function (jqXHR, textStatus, errorThrown) {
+                            $('#md-p-msg').remove();
+                            $('#md-msg').append(
+                                '<p id="md-p-msg">' +
+                                'システムエラーが発生しました。<br>' +
+                                textStatus +
+                                '</p>'
+                            );
+                            $('#md-msgbox').modal('show');
+                            console.log("[Chat:Post by button]Post Failed.");
+                            console.log("[Chat:Post by button]textStatus :" + textStatus);
+                            console.log("[Chat:Post by button]errorThrown:" + errorThrown);
+                        }
+                    );
+
+                }else if(nameString !== ""){
+                    console.log("[Chat:Post by button]No input to Message.");
+                                        $.post(
+                        "@Url.Action("Login", "Lobby")",
+                        "name=" + nameString + "&nameColor=" + nameColorId
+                    ).done(
+                        function (data, textStatus, jqXHR) {
+                            console.log("[Chat:Post by button]Post Success.:" + data.result);
+                            if(data.result === "OK") {
+                                window.location.href = "@Url.Action("Index", "Chat")";
+                            } else {
+                                $('#md-p-msg').remove();
+                                if(data.result === "NG1"){
+                                    $('#md-msg').append(
+                                        '<p id="md-p-msg">' +
+                                        '同名のユーザがすでにログインしています。' +
+                                        '</p>'
+                                    );
+                                }else{
+                                    $('#md-msg').append(
+                                        '<p id="md-p-msg">' +
+                                        'システムエラーが発生しました。' +
+                                        '</p>'
+                                    );
+                                }
+                                $('#md-msgbox').modal('show');
+                            }
+                        }
+                    ).fail(
+                        function (jqXHR, textStatus, errorThrown) {
+                            $('#md-p-msg').remove();
+                            $('#md-msg').append(
+                                '<p id="md-p-msg">' +
+                                'システムエラーが発生しました。<br>' +
+                                textStatus +
+                                '</p>'
+                            );
+                            $('#md-msgbox').modal('show');
+                            console.log("[Chat:Post by button]Post Failed.");
+                            console.log("[Chat:Post by button]textStatus :" + textStatus);
+                            console.log("[Chat:Post by button]errorThrown:" + errorThrown);
+                        }
+                    );
+                }else{
+                    console.log("[Chat:Post by button]No input to Name.");
+                    $('#md-p-msg').remove();
+                    $('#md-msg').append(
+                        '<p id="md-p-msg">' +
+                        '名前が入力されていません。<br>' +
+                        '入室するためには名前を入力してください。' +
+                        '</p>'
+                    );
+                    $('#md-msgbox').modal('show');
+                }
+                console.log("[Chat:Post by button]End event.");
+            });
+        </script>
+
+    </div>
+</div>
+
+<div class="modal fade" id="md-msgbox" tabindex="-1"
+     role="dialog" aria-labelledby="lb-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lb-title">メッセージ</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="md-msg">
+                <p id="md-p-msg">Modal body</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
