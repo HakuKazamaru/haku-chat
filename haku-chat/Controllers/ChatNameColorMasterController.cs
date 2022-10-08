@@ -1,29 +1,55 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MySql.Data.MySqlClient;
+
 using NLog;
 using NLog.Web;
+using haku_chat.DbContexts;
 
 namespace haku_chat.Controllers
 {
+    /// <summary>
+    /// コントローラークラス：
+    /// 　投稿者名文字カラーコードマスター
+    /// </summary>
+    [AllowAnonymous]
     public class ChatNameColorMasterController : Controller
     {
+        /// <summary>
+        /// ロガー
+        /// </summary>
         private static Logger logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 
+        /// <summary>
+        /// DBコンテキスト
+        /// </summary>
+        private readonly ChatDbContext _context;
+
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="context"></param>
+        public ChatNameColorMasterController(ChatDbContext context)
+        {
+            _context = context;
+        }
 
         // GET: ChatNameColorMaster
-        public ActionResult Index() {
+        public IActionResult Index()
+        {
             logger.Info("========== API Call! ==================================================");
             return GetAll();
         }
 
         // GET: ChatNameColorMaster/GetAll
-        public ActionResult GetAll() {
+        public IActionResult GetAll()
+        {
             List<Models.ChatNameColorMasterModel> chatNameColorMasters = new List<Models.ChatNameColorMasterModel>();
 
             logger.Info("========== API Call Start! ==================================================");
@@ -40,31 +66,14 @@ namespace haku_chat.Controllers
             logger.Info("========== Func Start! ==================================================");
             try
             {
-                StringBuilder sqlString = new StringBuilder();
+                chatNameColorMasters = _context.ChatNameColorMaster.ToList();
 
-                Common.MySQLConnecter connecter = new Common.MySQLConnecter(
-                    "192.168.101.251", "3306", "haku-chat", "haku-chat", "haku-chat-db"
-                );
-
-                sqlString.Append("select ");
-                sqlString.Append(" id, name, code ");
-                sqlString.Append("from ");
-                sqlString.Append(" chat_name_color_master ");
-                sqlString.Append("order by  ");
-                sqlString.Append(" id asc ");
-
-                logger.Debug("SQL:{0}", sqlString.ToString());
-
-                using (MySqlDataReader dataReader = connecter.ExecuteSql(sqlString.ToString()))
+                foreach (var tmpChatNameColorMaster in chatNameColorMasters.Select((Item, Index) => new { Item, Index }))
                 {
-                    while (dataReader.Read())
-                    {
-                        Models.ChatNameColorMasterModel chatNameColorMaster = new Models.ChatNameColorMasterModel();
-                        chatNameColorMaster.Id = dataReader.GetUInt32("id");
-                        chatNameColorMaster.Name = dataReader.GetString("name");
-                        chatNameColorMaster.Code = dataReader.GetString("code");
-                        chatNameColorMasters.Add(chatNameColorMaster);
-                    }
+                    logger.Trace("[{0}]============================================================", tmpChatNameColorMaster.Index);
+                    logger.Trace("[{0}]Id   :{1}", tmpChatNameColorMaster.Index, tmpChatNameColorMaster.Item.Id);
+                    logger.Trace("[{0}]Name :{1}", tmpChatNameColorMaster.Index, tmpChatNameColorMaster.Item.Name);
+                    logger.Trace("[{0}]Code :{1}", tmpChatNameColorMaster.Index, tmpChatNameColorMaster.Item.Code);
                 }
 
             }

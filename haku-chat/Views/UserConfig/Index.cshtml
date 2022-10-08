@@ -1,0 +1,101 @@
+﻿@model haku_chat.Models.UserConfigModel
+
+@{
+    ViewData["Title"] = "ユーザー設定";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>ユーザー設定</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="NameColorId" class="control-label"></label>
+                <input id="hd-name-color" type="hidden" asp-for="NameColorId" class="form-control" />
+                <div id="div-chat-name">
+                    <select id="ddl-chat-name" class="form-control">
+                        <option></option>
+                        <option>黒</option>
+                    </select>
+                </div>
+                <script>
+                    // ページ読み込み時実行
+                    $(function () {
+                        getChatNameColor();
+                    });
+
+                    // インプットパネル名前（色）リスト設定処理
+                    function getChatNameColor() {
+                        $.get("@Url.Action("GetAll", "ChatNameColorMaster")",
+                            function (data) {
+                                $('#ddl-chat-name').remove();
+                                $('#div-chat-name').append(
+                                    '<select id="ddl-chat-name" class="form-control">' +
+                                    '</select>'
+                                );
+                                $.each(data, function (key, value) {
+                                    $('#ddl-chat-name').append(
+                                        '<option value="' + value.id + '">' +
+                                        value.name +
+                                        '</option>'
+                                    );
+                                    setSessionDataToCIP();
+                                });
+                                console.log("通信成功");
+                                console.log(data);
+                            }
+                        );
+                    }
+
+                    // インプットパネルセッションデータ設定処理
+                    function setSessionDataToCIP() {
+                        var nameColorId = $('#hd-name-color').val();
+                        var ddlNameColor = $('#ddl-chat-name');
+                        ddlNameColor.val(parseInt(nameColorId));
+                    }
+
+                </script>
+                <span asp-validation-for="NameColorId" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="SendInfoMail" /> @Html.DisplayNameFor(model => model.SendInfoMail)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="ShowChatLogCount" class="control-label"></label>
+                <input asp-for="ShowChatLogCount" class="form-control" />
+                <span asp-validation-for="ShowChatLogCount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UpdateDatetime" class="control-label"></label>
+                <input asp-for="UpdateDatetime" class="form-control" readonly />
+                <span asp-validation-for="UpdateDatetime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input id="bt-post" type="submit" value="Save" class="btn btn-primary" />
+                <script>
+                    $('#bt-post').on('click', function () {
+                        console.log("[Chat:Post by button]Start event.");
+                        var nameColorId = $('#ddl-chat-name').val();
+                        var hdNameColorId = $('#hd-name-color');
+                        hdNameColorId.val(nameColorId);
+                        console.log("[Chat:Post by button]End event.");
+                        return true;
+                    });
+                </script>
+            </div>
+        </form>
+    </div>
+</div>
+
+<hr />
+
+<div class="row">
+    <a class="btn btn-secondary" asp-controller="Chat" asp-action="Index">チャットに戻る</a>
+</div>
+

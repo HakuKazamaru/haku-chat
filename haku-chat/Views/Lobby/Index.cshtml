@@ -1,6 +1,8 @@
 ﻿@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
+@model LobbyViewModel
+
 @{
     ViewData["Tile"] = "Chat：入室";
 }
@@ -53,11 +55,11 @@
                     }
                 );
             }
-
         </script>
 
         <div class="col">
-            <form id="lobby-form" name="lobby-form">
+            @{
+            <form id="lobby-form" name="lobby-form" method="post" asp-controller="Auth" asp-action="SignIn" asp-route-returnUrl="@Model.ReturnUrl">
                 <div class="row">
                     <div class="col-2" style="padding-top:0.5em;padding-bottom:0.5em;">
                         <label for="name" class="form-label" style=" margin-top:auto; margin-bottom:auto;">名前</label>
@@ -85,11 +87,12 @@
                 <div class="row">
                     <div class="col-12" style="padding-top:0.5em;padding-bottom:0.5em;">
                         <div class="form-group row justify-content-center">
-                            <input name="text" id="bt-post" class="btn btn-secondary" type="button" value="入室" />
+                                <input name="enter" id="bt-post" class="w-100 btn btn-lg btn-primary" type="button" value="入室" />
                         </div>
                     </div>
                 </div>
             </form>
+            }
         </div>
 
         <script>
@@ -204,22 +207,3 @@
     </div>
 </div>
 
-<div class="modal fade" id="md-msgbox" tabindex="-1"
-     role="dialog" aria-labelledby="lb-title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="lb-title">メッセージ</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="md-msg">
-                <p id="md-p-msg">Modal body</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
-            </div>
-        </div>
-    </div>
-</div>

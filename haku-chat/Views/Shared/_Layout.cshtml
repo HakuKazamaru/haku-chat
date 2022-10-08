@@ -1,14 +1,14 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="ja" data-color-mode="dark" data-dark-theme="dark_dimmed">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Haku's Chat System</title>
+    <title>Haku's Chat System - @ViewData["Title"]</title>
 
     <!-- ============================== StyleSheer ============================== -->
     <environment include="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" asp-append-version="true"/>
-        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
@@ -26,34 +26,94 @@
         <script src="~/lib/bootstrap/dist/js/bootstrap.min.js" asp-append-version="true"></script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
     </environment>
+    <script src="~/lib/moment/dist/moment.min.js" asp-append-version="true"></script>
     @RenderSection("HeaderScripts", required: false)
     <!-- ============================== JavaScript ============================== -->
 
 </head>
 <body>
     <header>
-        <div class="navbar navbar-expand-lg navbar-inverse navbar-fixed-top navbar-dark bg-dark ">
-            <a asp-area="" asp-controller="Chat" asp-action="Index" class="navbar-brand">Haku's Chat System</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <div class="container">
-                    <ul class="navbar-nav mr-auto">
-                        <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                        <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-                        <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
+        <nav class="navbar navbar-expand-lg navbar-inverse navbar-dark bg-dark fixed-top ">
+            <div class="container">
+                @if (User.Identity.IsAuthenticated && User.Identity.Name.Length > 0)
+                {
+                    <a asp-controller="Chat" asp-action="Index" class="navbar-brand">Haku's Chat System</a>
+                }
+                else
+                {
+                    <a asp-controller="Lobby" asp-action="Index" class="navbar-brand">Haku's Chat System</a>
+                }
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#nbMenu"
+                        aria-controls="nbMenu"
+                        aria-expanded="false"
+                        aria-label="ナビゲーションの切替">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="nbMenu">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0"></ul>
+                    <ul class="navbar-nav mb-2 mb-lg-0">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-action="Index" asp-controller="UserConfig">ユーザー設定</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-action="LogOut" asp-controller="Auth">退室(ログアウト)</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a id="a-login" class="nav-link" asp-controller="Auth" asp-action="LogIn">ログイン</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle"
+                               href="#"
+                               id="ddlRegisterMenu"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                    アカウント登録
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="ddlRegisterMenu">
+                                    <li>
+                                        <a id="a-login" class="dropdown-item" asp-controller="Auth" asp-action="Register">アカウント登録</a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <form id="frmSso" asp-controller="Auth" asp-action="SingIn" method="post">
+                                        <input id="hd-provider" type="hidden" name="provider" value="" />
+                                        @foreach (var provider in Model.ExternalLogins)
+                                        {
+                                        <li>
+                                            <a id="a-sso-@provider.Name"
+                                       class="dropdown-item"
+                                       value="@provider.Name"
+                                       href="#">
+                                                    @provider.DisplayName
+                                            </a>
+                                        </li>
+                                        }
+                                    <script>
+                                        $('input[id^="a-sso-.*"]').on('click', function () {
+                                            var aId = $(this).attr('id');
+                                            var aValue = $(this).attr('value');
+                                            var hdProvider = $('#hd-provider');
+                                            hdProvider, val(aValue);
+                                            $('#frmSso').submit();
+                                        });
+                                    </script>
+                                    </form>
+                                </ul>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
-
-        </div>
+        </nav>
     </header>
-
-    <!--
-    <partial name="_CookieConsentPartial" />
-    -->
 
     <main>
         <div class="container body-content">
@@ -68,5 +128,10 @@
             <p>&copy; 2021 - 風流吉報</p>
         </div>
     </footer>
+
+    <partial name="~/Views/Shared/_CookieConsentPartial.cshtml" />
+
+    <partial name="~/Views/Shared/MessageBox.cshtml" />
+
 </body>
 </html>

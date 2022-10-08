@@ -1,0 +1,70 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model LobbyViewModel
+
+@{
+    ViewData["Tile"] = "Chat：ログイン";
+}
+<script>
+    // ページ読み込み時実行
+    $(function () {
+        console.log("[Chat:ready]Start event.");
+        $('main').addClass('form-signin');
+        console.log("[Chat:ready]End event.");
+    });
+</script>
+
+<div style="padding-top:1vh; padding-bottom:1vh;">
+    <h1 class="mb-3">ログイン</h1>
+</div>
+
+<form class="needs-validation" asp-controller="Auth" asp-action="LogIn" method="post" role="form" novalidate>
+    <h5 class="h5 mb-3 fw-normal">ログイン情報を入力してください。</h5>
+    <div id="div-msg" class="alert alert-danger" role="alert" style="display:none;">
+        @if (!string.IsNullOrWhiteSpace(ViewBag.ErrorMessage))
+        {
+            @ViewBag.ErrorMessage;
+        }
+    </div>
+    <div class="form-floating">
+        <input id="tb-email" name="email" class="form-control" type="email" placehplder="name@example.com" required />
+        <label for="tb-email">Email address</label>
+    </div>
+    <div class="form-floating">
+        <input id="tb-password" name="password" class="form-control" type="password" required />
+        <label for="tb-password">Password</label>
+    </div>
+    <div class="checkbox mb-3">
+        <label>
+            <input type="checkbox" value="remember-me"> メールアドレスを記憶する
+        </label>
+    </div>
+    <button class="w-100 btn btn-lg btn-primary" type="submit">ログイン</button>
+    <script>
+
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+        $(function () {
+            var msg = $('#div-msg').text().replace(/\n/g, '').replace(/\r/g, '').replace(/\s/g, '');
+            if (msg !== '') {
+                $('#div-msg').css('display', '');
+            }
+        });
+
+    </script>
+</form>

@@ -1,0 +1,94 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model LobbyViewModel
+
+@{
+    ViewData["Tile"] = "Chat：アカウント登録";
+}
+
+<div style="padding-top:1vh; padding-bottom:1vh;">
+    <h1 class="mb-3">アカウント登録</h1>
+</div>
+
+<form class="needs-validation" asp-controller="Auth" asp-action="Register" method="post" role="form" novalidate>
+    <h5 class="h5 mb-3 fw-normal">登録するアカウントの情報を入力してください。</h5>
+    <div id="div-msg" class="alert alert-danger" role="alert" style="display:none;">
+        @ViewBag.ErrorMessage
+    </div>
+    <div class="form-floating">
+        <input id="tb-name" name="name" class="form-control" type="text" placehplder="Example Name" required />
+        <label for="tb-password">User Name</label>
+        <div class="invalid-feedback">
+            「User Name」が入力されていません。
+        </div>
+    </div>
+    <div class="form-floating">
+        <input id="tb-email" name="email" class="form-control" type="email" placehplder="name@example.com" required />
+        <label for="tb-email">Email address</label>
+        <div class="invalid-feedback">
+            「Email address」が正しく入力されていません。
+        </div>
+    </div>
+    <div class="form-floating">
+        <input id="tb-password" name="password" class="form-control" type="password" required />
+        <label for="tb-email">Password</label>
+        <div class="invalid-feedback">
+            「Password」が入力されていません。
+        </div>
+    </div>
+    <div class="checkbox mb-3">
+        <p>
+            <h5>・利用規約</h5>
+        <p>
+
+        </p>
+        <div class="form-check">
+            <input class="form-check-input" id="cb-read-me" type="checkbox" value="read-me" required>
+            <label class="form-check-label" for="cb-read-me">利用規約に同意する</label>
+            <div class="invalid-feedback">
+                アカウント登録には利用規約に同意する必要があります。
+            </div>
+        </div>
+    </div>
+    <button id="btn-submit" class="w-100 btn btn-lg btn-primary" type="submit">アカウント登録</button>
+    <script>
+        $('#cb-read-me').on('change', function () {
+            if ($(this).prop('checked')) {
+                // チェックがある場合の処理
+                // $('#btn-submit').prop("disabled", false);
+            }
+            else {
+                // チェックがない場合の処理
+                // $('#btn-submit').prop("disabled", true);
+            }
+        });
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+        $(function () {
+            var msg = $('#div-msg').text().replace(/\n/g, '').replace(/\r/g, '').replace(/\s/g, '');
+            if (msg !== '') {
+                $('#div-msg').css('display', '');
+            }
+        });
+    </script>
+</form>
+@if (ViewBag.Login)
+{
+    <hr />
+    <a class="btn btn-secondary" asp-controller="Chat" asp-action="Index">チャットに戻る</a>
+}

@@ -1,0 +1,54 @@
+﻿@model IEnumerable<haku_chat.Models.UserConfigModel>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.NameColorId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SendInfoMail)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ShowChatLogCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UpdateDatetime)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.NameColorId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SendInfoMail)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ShowChatLogCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UpdateDatetime)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

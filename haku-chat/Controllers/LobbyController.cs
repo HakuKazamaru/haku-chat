@@ -1,13 +1,21 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MySql.Data.MySqlClient;
+
 using NLog;
 using NLog.Web;
+using haku_chat.Models;
+using haku_chat.DbContexts;
 
 namespace haku_chat.Controllers
 {
@@ -15,6 +23,7 @@ namespace haku_chat.Controllers
     /// コントローラークラス：
     /// 　入室ページ
     /// </summary>
+    [AllowAnonymous]
     public class LobbyController : Controller
     {
         /// <summary>
@@ -23,26 +32,99 @@ namespace haku_chat.Controllers
         private static Logger logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 
         /// <summary>
+        /// DBコンテキスト
+        /// </summary>
+        private readonly ChatDbContext _context;
+
+        /// <summary>
+        /// サインインマネージャー
+        /// </summary>
+        private readonly SignInManager<UserMasterModel> _signInManager;
+
+        /// <summary>
+        /// コンストラクター
+        /// </summary>
+        /// <param name="context"></param>
+        public LobbyController(ChatDbContext context, SignInManager<UserMasterModel> signInManager)
+        {
+            _context = context;
+            _signInManager = signInManager;
+        }
+
+        /// <summary>
         /// GET Lobby
         /// </summary>
         /// <returns></returns>
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            logger.Info("========== Page Call! ==================================================");
-            return View();
+            logger.Info("========== Page Start! ==================================================");
+            LobbyViewModel model = new LobbyViewModel
+            {
+                ReturnUrl = "",
+                ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+
+            if (string.IsNullOrWhiteSpace(HttpContext.Session.GetString("SessionClear")))
+            {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                HttpContext.Session.SetString("SessionClear", "Cleared");
+                return RedirectToAction(nameof(LobbyController.Index), "Lobby");
+            }
+
+            if (Request.HttpContext.User.Identity.IsAuthenticated)
+            {
+                logger.Info("ログイン状態：ログイン済み");
+                logger.Debug(Request.HttpContext.User.Claims);
+            }
+            else
+            {
+                logger.Info("ログイン状態：未ログイン");
+            }
+
+            logger.Info("========== Page End!   ==================================================");
+            return View(model);
         }
 
+        /// <summary>
+        /// POST Lobby/Login
+        ///      ログイン用API
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="nameColor"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
         [HttpPost]
-        public ActionResult Login(string name, uint nameColor)
+        public async Task<IActionResult> Login(string name, uint nameColor, string message = "")
         {
             string retVal = "";
             int retCode = 0;
 
             logger.Info("========== API Call Start! ==================================================");
-            retCode = LoginChatRoom(name);
+            logger.Debug("Parameter[name]     :{0}", name);
+            logger.Debug("Parameter[nameColor]:{0}", nameColor);
+            logger.Debug("Parameter[message]  :{0}", message);
+
+            retCode = Common.DataBase.ChatLogFunc.LoginChatRoom(HttpContext, _context, name, nameColor, message);
+
             if (retCode == 0)
             {
                 logger.Info("ログインに成功しました。");
+
+                // セッションに名前と名前の色を格納
+                HttpContext.Session.SetString("Name", name);
+                HttpContext.Session.SetInt32("NameColor", (int)nameColor);
+
+                // サインインに必要なプリンシパルを作る
+                var claims = new[] {
+                    new Claim(ClaimTypes.NameIdentifier, "cookie"),
+                    new Claim(ClaimTypes.Name, name)
+                };
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                // 認証クッキーをレスポンスに追加
+                await HttpContext.SignInAsync(principal);
+
                 retVal = "OK";
             }
             else
@@ -60,98 +142,6 @@ namespace haku_chat.Controllers
             logger.Info("========== API Call End!   ==================================================");
 
             return Json(new { result = retVal });
-        }
-
-        /// <summary>
-        /// ログイン処理
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        private int LoginChatRoom(string name)
-        {
-            int retVal = -1;
-
-            logger.Info("========== Func Start! ==================================================");
-            try
-            {
-                List<Models.ChatLoginUserModel> chatLoginUserModels = Common.UserSession.GetUserLogin(name);
-
-                if (chatLoginUserModels != null)
-                {
-                    if (chatLoginUserModels.Count > 0)
-                    {
-                        foreach (var chatLoginUserModel in chatLoginUserModels.Select((item, index) => new { item, index }))
-                        {
-                            if (chatLoginUserModel.item.Status == 1)
-                            {
-                                logger.Debug("ログイン済みを確認しました。");
-                                if ((DateTime.Now - chatLoginUserModel.item.LastUpdate).TotalSeconds >= (30 * 60))
-                                {
-                                    logger.Debug("セッションがタイムアウトしています。");
-                                    retVal = 2;
-                                }
-                                else
-                                {
-                                    logger.Debug("セッションが有効です。");
-                                    retVal = 1;
-                                }
-                            }
-                            else
-                            {
-                                logger.Debug("ログアウト済みを確認しました。");
-                                retVal = 0;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        logger.Debug("ログイン情報が見つかりませんでした。");
-                        retVal = 0;
-                    }
-                }
-                else
-                {
-                    logger.Debug("ログイン情報が見つかりませんでした。");
-                    retVal = 0;
-                }
-
-                if (retVal != 1)
-                {
-                    logger.Debug("ログイン処理を試行します。");
-                    if (Common.UserSession.SetUserLogin(name))
-                    {
-                        logger.Debug("ログイン処理に成功しました。システムメッセージを投稿します。");
-                        if (Common.ChatLog.PostChatLog("システム", 0, string.Format("{0}さんが入室しました。", name), 0))
-                        {
-                            logger.Debug("システムメッセージを投稿に成功しました。");
-                            retVal = 0;
-                        }
-                        else
-                        {
-                            logger.Warn("システムメッセージの投稿に失敗しました。");
-                            retVal = -1;
-                        }
-                    }
-                    else
-                    {
-                        logger.Warn("ログイン処理に失敗しました。");
-                        retVal = -1;
-                    }
-                }
-                else
-                {
-                    logger.Warn("すでにセッションが有効です。");
-                }
-
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex);
-                retVal = -1;
-            }
-            logger.Info("========== Func End!   ==================================================");
-
-            return retVal;
         }
 
     }

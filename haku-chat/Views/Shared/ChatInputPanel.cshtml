@@ -1,0 +1,101 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<form id="chat-form" name="chat-form">
+    <div class="row">
+        <div class="col-2" style="padding-top:0.5em;padding-bottom:0.5em;">
+            <label for="name" class="form-label" style=" margin-top:auto; margin-bottom:auto;">名前</label>
+        </div>
+        <div class="col-5" style="padding-top:0.5em;padding-bottom:0.5em;">
+            <input name="name" id="tb-name" class="form-control" type="text" style="width:100%; margin-top:auto; margin-bottom:auto;" />
+        </div>
+        <div id="div-chat-name" class="col-3" style="padding-top:0.5em;padding-bottom:0.5em;">
+            <select id="ddl-chat-name" class="form-control">
+                <option></option>
+                <option>黒</option>
+            </select>
+        </div>
+        <div class="col-2" style="padding-top:0.5em;padding-bottom:0.5em;">
+            <input name="text" id="bt-post" class="btn btn-secondary" type="button" value="送信" />
+        </div>
+    </div>
+    <div class="row">
+        <textarea id="ta-text" class="form-control" style="width:100%"></textarea>
+    </div>
+</form>
+
+<script>
+    // ページ読み込み時実行
+    $(function () {
+        getChatNameColor();
+    });
+
+    $('#bt-post').on('click', function () {
+        console.log("[Chat:Post by button]Start event.");
+        var nameString = $('#tb-name').val();
+        var messageString = $('#ta-text').val();
+        var nameColorId = $('#ddl-chat-name').val();
+        var showChatCount = $('#hd-show-log-cont').val();
+
+        if (nameString !== "" && messageString !== "") {
+            console.log("[Chat:Post by button]Post chat message.");
+            $.post(
+                "@Url.Action("Post", "Chat")",
+                "name=" + nameString + "&message=" + messageString + "&nameColor=" + nameColorId + "&messageColor=1"
+            ).done(
+                function (data, textStatus, jqXHR) {
+                    getChatLog(showChatCount);
+                    console.log("[Chat:Post by button]Post Success.");
+                }
+            ).fail(
+                function (jqXHR, textStatus, errorThrown) {
+                    getChatLog(showChatCount);
+                    console.log("[Chat:Post by button]Post Failed.");
+                }
+            );
+        } else {
+            getChatLog(showChatCount);
+        }
+
+        console.log("[Chat:Post by button]End event.");
+    });
+
+    // インプットパネル名前（色）リスト設定処理
+    function getChatNameColor() {
+        $.get("@Url.Action("GetAll", "ChatNameColorMaster")",
+            function (data) {
+                $('#ddl-chat-name').remove();
+                $('#div-chat-name').append(
+                    '<select id="ddl-chat-name" class="form-control">' +
+                    '</select>'
+                );
+                $.each(data, function (key, value) {
+                    $('#ddl-chat-name').append(
+                        '<option value="' + value.id + '">' +
+                        value.name +
+                        '</option>'
+                    );
+                    setSessionDataToCIP();
+                });
+                console.log("通信成功");
+                console.log(data);
+            }
+        );
+    }
+
+    // インプットパネルセッションデータ設定処理
+    function setSessionDataToCIP(){
+        var nameString = $('#hd-name').val();
+        var nameColorId = $('#hd-name-color').val();
+        var tbName = $('#tb-name');
+        var ddlNameColor = $('#ddl-chat-name');
+        tbName.val(nameString);
+        ddlNameColor.val(parseInt(nameColorId));
+    }
+
+</script>
+<script>
+</script>

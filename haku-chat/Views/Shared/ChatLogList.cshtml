@@ -1,0 +1,64 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<script>
+    // ページ読み込み時実行
+    $(function () {
+        var showChatCount = $('#hd-show-log-cont').val();
+        console.log("[Chat:ready]Start event.");
+        getChatLog(showChatCount);
+        setInterval(function () {
+            getChatLog(showChatCount);
+        }, 15000);
+        console.log("[Chat:ready]End event.");
+    });
+
+    // チャットログ取得処理
+    function getChatLog(num) {
+        $.post("@Url.Action("Get", "Chat")", 'num=' + num,
+            function (data) {
+                $('.card').remove();
+                $.each(data, function (key, value) {
+                    $('#chat-log').append(
+                        '<div class="card">' +
+                        '  <div class="card-header pt-1 pb-0">' +
+                        '    <div class="container">' +
+                        '      <div class="row">' +
+                        '        <div class="col-name col-4 col-sm-6 col-md-8 col-xl-10">' +
+                        '          <h6 class="name card-title mb-0" style=color:' + value.nameColorCode + ';>' +
+                        value.name +
+                        '          </h6>' +
+                        '        </div>' +
+                        '        <div class="col-datetime col-8 col-sm-6 col-md-4 col-xl-2">' +
+                        '          <p class="datetime card-text text-right">' +
+                        moment(value.regTime).format('YYYY/MM/DD HH:mm:ss') +
+                        '          </p>' +
+                        '        </div>' +
+                        '      </div>' +
+                        '    </div>' +
+                        '  </div>' +
+                        '  <div class="card-body pt-1 pb-1">' +
+                        '    <div class="container">' +
+                        '      <div class="row">' +
+                        '        <div class="col-message col-12">' +
+                        '          <p class="message card-text">' +
+                        value.message +
+                        '          </p>' +
+                        '        </div>' +
+                        '      </div>' +
+                        '    </div>' +
+                        '  </div>' +
+                        '</div>'
+                    );
+                });
+
+                console.log("通信成功");
+                console.log(data);
+            }
+        );
+    }
+
+</script>
+<div id="chat-log" />
