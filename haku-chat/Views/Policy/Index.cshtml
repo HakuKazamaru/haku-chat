@@ -1,0 +1,106 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model haku_chat.Models.LobbyViewModel
+
+@{
+    ViewData["Title"] = "利用規約";
+}
+<div class="row" style="padding-top:1vh; padding-bottom:1vh;">
+    <h1>@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    @if (!Model.ServicePolicy.Use && !Model.PrivacyPolicy.Use && !Model.CookiePolicy.Use)
+    {
+        <div class="alert alert-danger">
+            サービスポリシー、プライバシーポリシー、クッキーポリシーいずれも設定されていません。
+        </div>
+    }
+
+    @if (Model.ServicePolicy.Use)
+    {
+        <div class="col-xl">
+            <div class="card">
+                <div class="card-header">
+                    <h3>サービスポリシー</h3>
+                </div>
+                <div class="card-body">
+                    <p>
+                        @foreach (var service in Model.ServicePolicy.PolicyStrings)
+                        {
+                            <div class="row">
+                                <h5>@service.Title</h5>
+                                <p>
+                                    @foreach (var text in service.Texts)
+                                    {
+                                        @text
+                                        <br>
+                                    }
+                                </p>
+                            </div>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.PrivacyPolicy.Use)
+    {
+        <div class="col-xl">
+            <div class="card">
+                <div class="card-header">
+                    <h3>プライバシーポリシー</h3>
+                </div>
+                <div class="card-body">
+                    <p>
+                        @foreach (var privacy in Model.PrivacyPolicy.PolicyStrings)
+                        {
+                            <div class="row">
+                                <h5>@privacy.Title</h5>
+                                <p>
+                                    @foreach (var text in privacy.Texts)
+                                    {
+                                        @text
+                                        <br>
+                                    }
+                                </p>
+                            </div>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.CookiePolicy.Use)
+    {
+        <div class="col-xl">
+            <div class="card">
+                <div class="card-header">
+                    <h3>クッキーポリシー</h3>
+                </div>
+                <div class="card-body">
+                    <p>
+                        @foreach (var cookie in Model.CookiePolicy.PolicyStrings)
+                        {
+                            <div class="row">
+                                <h5>@cookie.Title</h5>
+                                <p>
+                                    @foreach (var text in cookie.Texts)
+                                    {
+                                        @text
+                                        <br>
+                                    }
+                                </p>
+                            </div>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<input class="btn btn-primary" type="button" value="閉じる" onclick="window.close();" />

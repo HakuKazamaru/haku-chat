@@ -4,11 +4,11 @@
 @model LobbyViewModel
 
 @{
-    ViewData["Tile"] = "Chat：アカウント登録";
+    ViewData["Title"] = "アカウント登録";
 }
 
 <div style="padding-top:1vh; padding-bottom:1vh;">
-    <h1 class="mb-3">アカウント登録</h1>
+    <h1 class="mb-3">@ViewData["Title"]</h1>
 </div>
 
 <form class="needs-validation" asp-controller="Auth" asp-action="Register" method="post" role="form" novalidate>
@@ -40,6 +40,7 @@
     <div class="checkbox mb-3">
         <p>
             <h5>・利用規約</h5>
+            <a asp-controller="Policy" asp-action="Index" target="_blank">利用規約を読む</a>
         <p>
 
         </p>

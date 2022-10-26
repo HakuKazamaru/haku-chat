@@ -72,6 +72,37 @@ namespace haku_chat.Common.Utility
         }
 
         /// <summary>
+        /// appsettings.jsonの"appsettings"セクションから
+        /// 指定したセクションの設定値を文字列で取得
+        /// </summary>
+        /// <param name="configure"></param>
+        /// <param name="sectionName"></param>
+        /// <returns></returns>
+        public static string GetAppsettingsToSectionStringValue(IConfiguration configure, string sectionName)
+        {
+            string sectionValue = string.Empty;
+
+            logger.Info("========== Func Start! ==================================================");
+            logger.Debug("Parameter[sectionName]：{0}", sectionName);
+
+            try
+            {
+                IConfigurationSection section = configure.GetSection("appSettings");
+                sectionValue = section[sectionName];
+                logger.Debug("Value                 ：{0}", sectionValue);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                sectionValue = string.Empty;
+            }
+
+            logger.Info("========== Func End!   ==================================================");
+
+            return sectionValue;
+        }
+
+        /// <summary>
         /// DB接続文字列取得メソッド
         /// </summary>
         /// <param name="sectionName"></param>

@@ -2,8 +2,14 @@
 
 namespace haku_chat.Common
 {
+    /// <summary>
+    /// 投稿者名色関連定数
+    /// </summary>
     public static class NameColor
     {
+        /// <summary>
+        /// カラーID関連
+        /// </summary>
         public enum ColorCodeID
         {
             [StringValue("黒")]
@@ -23,6 +29,10 @@ namespace haku_chat.Common
             [StringValue("シアン")]
             CYAN = 7,
         }
+
+        /// <summary>
+        /// カラーコード関連
+        /// </summary>
         public enum ColorCode
         {
             [StringValue("#000000")]
@@ -44,6 +54,28 @@ namespace haku_chat.Common
         }
     }
 
+    /// <summary>
+    /// ログイン関連定数
+    /// </summary>
+    public static class Login
+    {
+        /// <summary>
+        /// ログインセッション定数
+        /// </summary>
+        public enum LoginSessionStatus
+        {
+            [StringValue("ログアウト済みセッション")]
+            SESSION_UNKOWNERROR = -1,
+            [StringValue("ログアウト済みセッション")]
+            SESSION_OFFLINE = 0,
+            [StringValue("有効なセッション")]
+            SESSION_ONLINE = 1,
+            [StringValue("セッションタイムアウト")]
+            SESSION_TIMEOUT = 2,
+            [StringValue("存在しないセッション")]
+            SESSION_NOTFOUND = 3,
+        }
+    }
 
     /// <summary>
     /// Enumに文字列を付加するためのAttributeクラス
@@ -65,6 +97,9 @@ namespace haku_chat.Common
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static class CommonAttribute
     {
 

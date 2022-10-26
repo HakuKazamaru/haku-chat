@@ -3,11 +3,11 @@
 *@
 
 @{
-    ViewData["Tile"] = "Chat：アカウント削除";
+    ViewData["Title"] = "アカウント削除";
 }
 
 <div style="padding-top:1vh; padding-bottom:1vh;">
-    <h1 class="mb-3">アカウント削除</h1>
+    <h1 class="mb-3">@ViewData["Title"]</h1>
 </div>
 
 <form class="needs-validation" asp-controller="Auth" asp-action="LogIn" method="post" role="form">

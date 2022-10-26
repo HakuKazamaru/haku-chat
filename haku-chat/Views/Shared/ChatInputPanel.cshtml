@@ -27,12 +27,28 @@
     </div>
 </form>
 
+<div id="div-chat-loading" class="position-absolute top-0 start-0 w-100 h-100 d-none">
+    <div class="text-center position-absolute top-50 start-50 w-100 translate-middle">
+        <div class="spinner-border text-light" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+</div>
+
+<style>
+    #div-chat-loading {
+        background: rgba(0, 0, 0, .5);
+        z-index: 10000;
+    }
+</style>
+
 <script>
     // ページ読み込み時実行
     $(function () {
         getChatNameColor();
     });
 
+    // チャット投稿
     $('#bt-post').on('click', function () {
         console.log("[Chat:Post by button]Start event.");
         var nameString = $('#tb-name').val();
@@ -40,19 +56,31 @@
         var nameColorId = $('#ddl-chat-name').val();
         var showChatCount = $('#hd-show-log-cont').val();
 
+        // ログインセッション確認
+        var loginSession = checkLoginSession();
+        if (!loginSession) {
+            console.log("[Chat:Post by button]End event.");
+            window.location.href = "@Url.Action("Index", "Lobby")";
+            return true;
+        }
+
         if (nameString !== "" && messageString !== "") {
             console.log("[Chat:Post by button]Post chat message.");
+            show_chat_loading();
             $.post(
                 "@Url.Action("Post", "Chat")",
                 "name=" + nameString + "&message=" + messageString + "&nameColor=" + nameColorId + "&messageColor=1"
             ).done(
                 function (data, textStatus, jqXHR) {
                     getChatLog(showChatCount);
+                    $('#ta-text').val("");
+                    hide_chat_loading();
                     console.log("[Chat:Post by button]Post Success.");
                 }
             ).fail(
                 function (jqXHR, textStatus, errorThrown) {
                     getChatLog(showChatCount);
+                    hide_chat_loading();
                     console.log("[Chat:Post by button]Post Failed.");
                 }
             );
@@ -87,7 +115,7 @@
     }
 
     // インプットパネルセッションデータ設定処理
-    function setSessionDataToCIP(){
+    function setSessionDataToCIP() {
         var nameString = $('#hd-name').val();
         var nameColorId = $('#hd-name-color').val();
         var tbName = $('#tb-name');
@@ -96,6 +124,45 @@
         ddlNameColor.val(parseInt(nameColorId));
     }
 
-</script>
-<script>
+    //ローディング表示
+    function show_chat_loading() {
+        $('#div-chat-loading').removeClass('d-none');
+    }
+
+    //ローディング非表示
+    function hide_chat_loading() {
+        $('#div-chat-loading').addClass('d-none');
+    }
+
+    // セッション確認処理
+    function checkLoginSession() {
+        var returnVal = false;
+        var nameString = $('#hd-name').val();
+        console.log("[Chat:Post by checkLoginSession]Start function.");
+        $.ajax({
+            type: 'POST',
+            url: "@Url.Action("CheckLoginSession", "Auth")",
+            data: "userName=" + nameString,
+            async: false,
+            cache: false,
+            dataType: 'json'
+        }).done(
+            function (data, textStatus, jqXHR) {
+                console.log("[Chat:Post by checkLoginSession]Post Success.");
+                console.log("[Chat:Post by checkLoginSession]Data:" + data.result);
+                if (data.result === "ONLINE") {
+                    returnVal = true;
+                }else{
+                    returnVal = false;
+                }
+            }
+        ).fail(
+            function (jqXHR, textStatus, errorThrown) {
+                console.log("[Chat:Post by checkLoginSession]Post Failed.");
+            }
+        );
+        console.log("[Chat:Post by checkLoginSession]End function.");
+        return returnVal;
+    }
+
 </script>

@@ -4,14 +4,14 @@
 @model LobbyViewModel
 
 @{
-    ViewData["Tile"] = "Chat：入室";
+    ViewData["Title"] = "Chat：入室";
 }
 
 <div id="lobby" class="lobby">
     <div id="lobby-title" class="row">
         <div class="col" style="height:25vh">
             <div class="row" style="padding-top:1vh; padding-bottom:1vh;">
-                <h1>Chat：入室</h1>
+                <h1>@ViewData["Title"]</h1>
             </div>
             <div class="row">
                 <p class="text-center">入室するには名前を入力して「入室」ボタンを押してください。</p>

@@ -9,6 +9,7 @@ using MailKit.Security;
 
 using NLog;
 using NLog.Web;
+using Microsoft.Extensions.Configuration;
 
 namespace haku_chat.Common.Utility
 {
@@ -25,18 +26,19 @@ namespace haku_chat.Common.Utility
         /// <summary>
         /// メール送信メソッド
         /// </summary>
+        /// <param name="configuration"></param>
         /// <param name="email"></param>
         /// <param name="subject"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public static async Task SendEmailAsync(string email, string subject, string message)
+        public static async Task SendEmailAsync(IConfiguration configuration, string email, string subject, string message)
         {
-            string fromAddress = Config.GetAppsettingsToSectionStringValue("FromAddress");
-            string serverAddress = Config.GetAppsettingsToSectionStringValue("SmtpServerAddress");
-            string serverPortStr = Config.GetAppsettingsToSectionStringValue("SmtpServerPort");
-            string secureSocketOption = Config.GetAppsettingsToSectionStringValue("SmtpSecureSocketOption");
-            string userID = Config.GetAppsettingsToSectionStringValue("SmtpUserID");
-            string password = Config.GetAppsettingsToSectionStringValue("SmtpPassword");
+            string fromAddress = Config.GetAppsettingsToSectionStringValue(configuration,"FromAddress");
+            string serverAddress = Config.GetAppsettingsToSectionStringValue(configuration, "SmtpServerAddress");
+            string serverPortStr = Config.GetAppsettingsToSectionStringValue(configuration, "SmtpServerPort");
+            string secureSocketOption = Config.GetAppsettingsToSectionStringValue(configuration, "SmtpSecureSocketOption");
+            string userID = Config.GetAppsettingsToSectionStringValue(configuration, "SmtpUserID");
+            string password = Config.GetAppsettingsToSectionStringValue(configuration, "SmtpPassword");
 
             int portNum = 25;
             SecureSocketOptions secureSocketOptions = SecureSocketOptions.Auto;
@@ -58,8 +60,10 @@ namespace haku_chat.Common.Utility
                 logger.Warn("SMTPサーバーポートに数値以外が設定されています。25番ポートを使用します。");
             }
 
-            switch (secureSocketOption.ToLower()) {
-                case "none": {
+            switch (secureSocketOption.ToLower())
+            {
+                case "none":
+                    {
                         secureSocketOptions = SecureSocketOptions.None;
                         break;
                     }
@@ -83,7 +87,8 @@ namespace haku_chat.Common.Utility
                         secureSocketOptions = SecureSocketOptions.StartTlsWhenAvailable;
                         break;
                     }
-                default: {
+                default:
+                    {
                         logger.Warn("SMTPサーバーセキュア接続設定に不正な値が設定されています。自動識別を使用します。");
                         secureSocketOptions = SecureSocketOptions.Auto;
                         break;
@@ -128,13 +133,14 @@ namespace haku_chat.Common.Utility
         /// <summary>
         /// 入室通知送信メソッド
         /// </summary>
+        /// <param name="configuration"></param>
         /// <param name="email"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static async Task SendLoginInfoMailAsync(string email, string name)
+        public static async Task SendLoginInfoMailAsync(IConfiguration configuration, string email, string name)
         {
             logger.Info("========== Func Start! ==================================================");
-            string url = Config.GetAppsettingsToSectionStringValue("LoginFullUrl");
+            string url = Config.GetAppsettingsToSectionStringValue(configuration, "LoginFullUrl");
             string title = "[入室通知]Haku's Chat System";
             string body = "チャット入室通知：{0}\r\n"
                 + "{1}さんが入室しました。\r\n"
@@ -142,7 +148,7 @@ namespace haku_chat.Common.Utility
                 + "-------------------------\r\n"
                 + "入室URL：{2}";
 
-            await SendEmailAsync(email, title, String.Format(body, DateTime.Now, name, url));
+            await SendEmailAsync(configuration, email, title, String.Format(body, DateTime.Now, name, url));
         }
 
 

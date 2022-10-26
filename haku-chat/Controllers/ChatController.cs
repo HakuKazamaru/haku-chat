@@ -217,7 +217,7 @@ namespace haku_chat.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost]
-        public IActionResult Post(string name, uint nameColor, string message, uint messageColor)
+        public async Task<IActionResult> Post(string name, uint nameColor, string message, uint messageColor)
         {
             string retVal = "";
             Models.ChatLogModel chatLogModel = new Models.ChatLogModel();
@@ -237,6 +237,23 @@ namespace haku_chat.Controllers
                 chatLogModel.Message = message;
 
                 _context.ChatLog.Add(chatLogModel);
+
+                // セッションが有効な場合はDBのセッションを更新
+                if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString("Name")))
+                {
+                    string userName = HttpContext.Session.GetString("Name");
+                    logger.Debug("Session parameter[Name]:{0}", userName);
+                    var chatLoginUser = await _context.ChatLoginUser.SingleOrDefaultAsync(x => x.Name == userName);
+                    if (chatLoginUser != null)
+                    {
+                        chatLoginUser.LastUpdate = DateTime.Now;
+                    }
+                }
+                else
+                {
+                    logger.Warn("Session parameter data is NULL![Name]");
+                }
+
                 _context.SaveChanges();
 
                 retVal = "OK";

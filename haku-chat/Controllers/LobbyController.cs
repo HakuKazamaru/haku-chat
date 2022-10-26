@@ -16,6 +16,8 @@ using NLog;
 using NLog.Web;
 using haku_chat.Models;
 using haku_chat.DbContexts;
+using Microsoft.Extensions.Configuration;
+using System.Configuration;
 
 namespace haku_chat.Controllers
 {
@@ -37,6 +39,11 @@ namespace haku_chat.Controllers
         private readonly ChatDbContext _context;
 
         /// <summary>
+        /// app.json読み取り用
+        /// </summary>
+        private readonly IConfiguration _configuration;
+
+        /// <summary>
         /// サインインマネージャー
         /// </summary>
         private readonly SignInManager<UserMasterModel> _signInManager;
@@ -45,10 +52,11 @@ namespace haku_chat.Controllers
         /// コンストラクター
         /// </summary>
         /// <param name="context"></param>
-        public LobbyController(ChatDbContext context, SignInManager<UserMasterModel> signInManager)
+        public LobbyController(ChatDbContext context, SignInManager<UserMasterModel> signInManager, IConfiguration configuration)
         {
             _context = context;
             _signInManager = signInManager;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -58,6 +66,7 @@ namespace haku_chat.Controllers
         public async Task<IActionResult> Index()
         {
             logger.Info("========== Page Start! ==================================================");
+            string useGuestMode = Common.Utility.Config.GetAppsettingsToSectionStringValue(_configuration, "UseGestUser").ToLower();
             LobbyViewModel model = new LobbyViewModel
             {
                 ReturnUrl = "",
@@ -69,6 +78,12 @@ namespace haku_chat.Controllers
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 HttpContext.Session.SetString("SessionClear", "Cleared");
                 return RedirectToAction(nameof(LobbyController.Index), "Lobby");
+            }
+
+            // ゲスト機能が無効な場合、ログインページへリダイレクト
+            if (useGuestMode != "true")
+            {
+                return RedirectToAction(nameof(AuthController.LogIn), "Auth");
             }
 
             if (Request.HttpContext.User.Identity.IsAuthenticated)
@@ -104,7 +119,7 @@ namespace haku_chat.Controllers
             logger.Debug("Parameter[nameColor]:{0}", nameColor);
             logger.Debug("Parameter[message]  :{0}", message);
 
-            retCode = Common.DataBase.ChatLogFunc.LoginChatRoom(HttpContext, _context, name, nameColor, message);
+            retCode = await Common.DataBase.ChatLogFunc.LoginChatRoom(HttpContext, _context, _configuration, name, nameColor, message);
 
             if (retCode == 0)
             {

@@ -57,6 +57,45 @@
                     <ul class="navbar-nav mb-2 mb-lg-0">
                         @if (User.Identity.IsAuthenticated)
                         {
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle"
+                               href="#"
+                               id="ddlOnlineUserList"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                    オンラインユーザー
+                                    <script>
+                                        // ページ読み込み時実行
+                                        $(function () {
+                                            getOnlineUserList();
+                                            setInterval(function () {
+                                                getOnlineUserList();
+                                            }, 15000);
+                                        });
+
+                                        // オンラインユーザーの一覧取得
+                                        function getOnlineUserList() {
+                                            $.get("@Url.Action("GetOnlineUser", "LoginUser")",
+                                                function (data) {
+                                                    $('.online-user-list').remove();
+                                                    $.each(data, function (key, value) {
+                                                        $('#online-user-list').append(
+                                                            '<p class="online-user-list ms-2 mb-0">' + value + '</p>'
+                                                        );
+                                                    });
+                                                    console.log("通信成功");
+                                                    console.log(data);
+                                                }
+                                            );
+                                        }
+                                    </script>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="ddlOnlineUserList">
+                                    <li id="online-user-list"><p class="online-user-list">未更新</p></li>
+                                </ul>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-action="Index" asp-controller="UserConfig">ユーザー設定</a>
                             </li>

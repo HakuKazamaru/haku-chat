@@ -1,28 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
+using NuGet.Protocol;
 
 using NLog;
 using NLog.Web;
-using haku_chat.Models;
-using haku_chat.DbContexts;
-using System.Xml.Linq;
-using Microsoft.AspNetCore.Http;
-using NuGet.Protocol;
+
 using haku_chat.Common;
-using System.Security.AccessControl;
+using haku_chat.DbContexts;
+using haku_chat.Models;
+using Microsoft.Extensions.Configuration;
+using System.Configuration;
 
 namespace haku_chat.Controllers
 {
+    /// <summary>
+    /// 認証処理ページ
+    /// </summary>
     [AllowAnonymous]
     public class AuthController : Controller
     {
@@ -35,6 +42,11 @@ namespace haku_chat.Controllers
         /// DBコンテキスト
         /// </summary>
         private readonly ChatDbContext _context;
+
+        /// <summary>
+        /// app.json読み取り用
+        /// </summary>
+        private readonly IConfiguration _configuration;
 
         /// <summary>
         /// 認証スキームプロバイダー
@@ -69,7 +81,8 @@ namespace haku_chat.Controllers
             ChatDbContext context,
             UserManager<UserMasterModel> userManager,
             SignInManager<UserMasterModel> signInManager,
-            IHttpContextAccessor httpContextAccessor
+            IHttpContextAccessor httpContextAccessor,
+            IConfiguration configuration
             )
         {
             _authenticationSchemeProvider = authenticationSchemeProvider;
@@ -77,6 +90,7 @@ namespace haku_chat.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _claim = httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -276,7 +290,7 @@ namespace haku_chat.Controllers
                         string id = await _userManager.GetUserIdAsync(user);
                         string name = await _userManager.GetUserNameAsync(user);
 
-                        retCode = Common.DataBase.ChatLogFunc.LoginChatRoom(HttpContext, _context, name);
+                        retCode = await Common.DataBase.ChatLogFunc.LoginChatRoom(HttpContext, _context, _configuration, name);
 
                         if (retCode == 0)
                         {
@@ -349,7 +363,7 @@ namespace haku_chat.Controllers
 
             if (!string.IsNullOrWhiteSpace(name))
             {
-                int retCode = Common.DataBase.ChatLogFunc.LogoutChatRoom(HttpContext, _context, name);
+                int retCode = await Common.DataBase.ChatLogFunc.LogoutChatRoom(HttpContext, _context, name);
 
                 HttpContext.Session.Clear();
 
@@ -383,7 +397,7 @@ namespace haku_chat.Controllers
 
                 if (!string.IsNullOrWhiteSpace(name))
                 {
-                    int retCode = Common.DataBase.ChatLogFunc.LogoutChatRoom(HttpContext, _context, name);
+                    int retCode = await Common.DataBase.ChatLogFunc.LogoutChatRoom(HttpContext, _context, name);
 
                     if (retCode == 0)
                     {
@@ -558,6 +572,49 @@ namespace haku_chat.Controllers
         public async Task<IActionResult> UnRegister()
         {
             return await LogOut();
+        }
+
+        /// <summary>
+        /// ログインセッション確認処理
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> CheckLoginSession(string userName)
+        {
+            string returnVal = "NULL";
+            int checkStatus = -1;
+            logger.Debug("========== Api Start! ==================================================");
+
+            checkStatus = await Common.DataBase.ChatLogFunc.CheckSessionTimeout(_context, userName);
+            logger.Debug("Check status     :{0}", checkStatus);
+
+            switch (checkStatus)
+            {
+                case (int)Login.LoginSessionStatus.SESSION_ONLINE:
+                    {
+                        returnVal = "ONLINE";
+                        break;
+                    }
+                case (int)Login.LoginSessionStatus.SESSION_OFFLINE
+                  or (int)Login.LoginSessionStatus.SESSION_TIMEOUT
+                  or (int)Login.LoginSessionStatus.SESSION_NOTFOUND:
+                    {
+                        returnVal = "OFFLINE";
+                        break;
+                    }
+                default:
+                    {
+                        returnVal = "UNKOWN_ERROR";
+                        break;
+                    }
+            }
+            logger.Debug("Check status name:{0}", returnVal);
+
+            logger.Debug("========== Api End!   ==================================================");
+            return Json(new Dictionary<string, string>() {
+                { "result", returnVal },
+            });
         }
 
     }

@@ -4,8 +4,9 @@
 @model LobbyViewModel
 
 @{
-    ViewData["Tile"] = "Chat：ログイン";
+    ViewData["Title"] = "ログイン";
 }
+
 <script>
     // ページ読み込み時実行
     $(function () {
@@ -15,16 +16,18 @@
     });
 </script>
 
-<div style="padding-top:1vh; padding-bottom:1vh;">
-    <h1 class="mb-3">ログイン</h1>
+<div class="row" style="padding-top:1vh; padding-bottom:1vh;">
+    <h1 class="mb-3">@ViewData["Title"]</h1>
 </div>
 
+<div class="row">
 <form class="needs-validation" asp-controller="Auth" asp-action="LogIn" method="post" role="form" novalidate>
     <h5 class="h5 mb-3 fw-normal">ログイン情報を入力してください。</h5>
     <div id="div-msg" class="alert alert-danger" role="alert" style="display:none;">
         @if (!string.IsNullOrWhiteSpace(ViewBag.ErrorMessage))
         {
-            @ViewBag.ErrorMessage;
+            @ViewBag.ErrorMessage
+            ;
         }
     </div>
     <div class="form-floating">
@@ -68,3 +71,10 @@
 
     </script>
 </form>
+</div>
+
+<hr />
+
+<div class="row">
+    <a asp-controller="Auth" asp-action="Register">新規登録はこちら</a>
+</div>

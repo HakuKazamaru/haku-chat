@@ -46,7 +46,7 @@ namespace haku_chat
         }
 
         /// <summary>
-        /// 
+        /// appsetting.json読み込み用
         /// </summary>
         public IConfiguration Configuration { get; }
 
@@ -78,7 +78,7 @@ namespace haku_chat
             // DBContextの設定
             services.AddDbContext<ChatDbContext>(options =>
             {
-                string dbType = Config.GetAppsettingsToSectionStringValue("DBType");
+                string dbType = Config.GetAppsettingsToSectionStringValue(Configuration, "DBType");
                 // ログ出力設定
                 options.EnableSensitiveDataLogging();
 
@@ -184,12 +184,13 @@ namespace haku_chat
             {
                 cookieOptions.LoginPath = "/Auth/LogIn";
                 cookieOptions.LogoutPath = "/Auth/LogOut";
-            }).AddGoogle(googleOptions =>
+            })
+            /*
+            .AddGoogle(googleOptions =>
             {
                 googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
                 googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
             })
-            /*
             .AddFacebook(facebookOptions =>
             {
                 facebookOptions.AppId = Configuration["Authentication:FB:AppId"];
@@ -227,6 +228,8 @@ namespace haku_chat
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             logger.Info("========== Func Start! ==================================================");
+            string useHttps = Common.Utility.Config.GetAppsettingsToSectionStringValue("UseHttps").ToLower();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -234,10 +237,10 @@ namespace haku_chat
             else
             {
                 app.UseExceptionHandler("/Error");
-                app.UseHsts();
+                if (useHttps == "true") app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            if (useHttps == "true") app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
@@ -266,5 +269,6 @@ namespace haku_chat
             });
             logger.Info("========== Func End!   ==================================================");
         }
+
     }
 }

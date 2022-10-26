@@ -1,9 +1,32 @@
 ﻿@{
-    ViewData["Title"] = "Chat：ルーム";
+    ViewData["Title"] = "チャット[人数]";
 }
 
 <div id="chat-title" style="padding-top:1vh; padding-bottom:1vh;">
-    <h2>チャット</h2>
+    <h2 id="title">@ViewData["Title"]</h2>
+    <script>
+        // ページ読み込み時実行
+        $(function () {
+            getOnlineUserCount();
+            setInterval(function () {
+                getOnlineUserCount();
+            }, 15000);
+        });
+
+        // オンラインユーザーの一覧取得
+        function getOnlineUserCount() {
+            $.get("@Url.Action("CheckOnlineUserCount", "LoginUser")",
+                function (data) {
+                    var $title = $('#title');
+                    var titleStr = "チャット[人数]";
+                    titleStr = titleStr.replace('人数', data.count);
+                    $title.text(titleStr);
+                    console.log("通信成功");
+                    console.log(data);
+                }
+            );
+        }
+    </script>
 </div>
 
 <input id="hd-name" name="hname" type="hidden" value="@ViewBag.Name" />
